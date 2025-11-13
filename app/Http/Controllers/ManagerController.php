@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\LeaveRequest;
+use App\Services\ConflictDetectionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ManagerController extends Controller
 {
-    public function __construct()
+    public function __construct(protected ConflictDetectionService $conflictService)
     {
         // Ensure only managers can access these methods
         $this->middleware(function ($request, $next) {
@@ -53,12 +54,24 @@ class ManagerController extends Controller
             ->limit(5)
             ->get();
 
+        // Get conflict summary
+        $conflictSummary = $this->conflictService->getConflictSummary($user->id);
+
+        // Get current team availability (next 30 days)
+        $currentAvailability = $this->conflictService->calculateTeamAvailability(
+            $user->id,
+            now(),
+            now()->addDays(30)
+        );
+
         return view('manager.dashboard', [
             'pendingCount' => $pendingCount,
             'approvedThisMonth' => $approvedThisMonth,
             'teamSize' => $user->directReports()->count(),
             'recentRequests' => $recentRequests,
             'upcomingLeaves' => $upcomingLeaves,
+            'conflictSummary' => $conflictSummary,
+            'currentAvailability' => $currentAvailability,
         ]);
     }
 
@@ -75,9 +88,9 @@ class ManagerController extends Controller
             ->orderByDesc('submitted_at')
             ->paginate(20);
 
-        // Check for conflicts for each request
+        // Check for conflicts for each request using the service
         foreach ($pendingRequests as $leaveRequest) {
-            $leaveRequest->conflicts = $this->checkConflicts($leaveRequest, $user->id);
+            $leaveRequest->conflicts = $this->conflictService->checkConflicts($leaveRequest, $user->id);
         }
 
         return view('manager.pending-requests', [
@@ -97,8 +110,8 @@ class ManagerController extends Controller
 
         $leaveRequest->load(['user', 'manager', 'history.performedBy']);
 
-        // Check for conflicts
-        $conflicts = $this->checkConflicts($leaveRequest, auth()->id());
+        // Check for conflicts using the service
+        $conflicts = $this->conflictService->checkConflicts($leaveRequest, auth()->id());
 
         return view('manager.review-request', [
             'leaveRequest' => $leaveRequest,
@@ -207,39 +220,22 @@ class ManagerController extends Controller
             ->orderBy('start_date')
             ->get();
 
+        // Get daily availability breakdown
+        $dailyAvailability = $this->conflictService->getDailyAvailability($user->id, $startDate);
+
+        // Get month availability summary
+        $monthAvailability = $this->conflictService->calculateTeamAvailability(
+            $user->id,
+            $startDate,
+            $endDate
+        );
+
         return view('manager.team-calendar', [
             'leaves' => $leaves,
             'currentMonth' => $startDate,
             'teamSize' => $user->directReports()->count(),
+            'dailyAvailability' => $dailyAvailability,
+            'monthAvailability' => $monthAvailability,
         ]);
-    }
-
-    /**
-     * Check for conflicts with existing approved leaves.
-     */
-    private function checkConflicts(LeaveRequest $leaveRequest, int $managerId): array
-    {
-        $overlappingLeaves = LeaveRequest::forManager($managerId)
-            ->approved()
-            ->where('id', '!=', $leaveRequest->id)
-            ->overlapping($leaveRequest->start_date->format('Y-m-d'), $leaveRequest->end_date->format('Y-m-d'))
-            ->with('user')
-            ->get();
-
-        $conflicts = [];
-
-        if ($overlappingLeaves->isNotEmpty()) {
-            $conflicts[] = [
-                'type' => 'overlap',
-                'severity' => $overlappingLeaves->count() >= 2 ? 'high' : 'medium',
-                'message' => $overlappingLeaves->count().' team member(s) already on leave during this period',
-                'details' => $overlappingLeaves->map(fn ($leave) => [
-                    'employee' => $leave->user->name,
-                    'dates' => $leave->start_date->format('M d').' - '.$leave->end_date->format('M d, Y'),
-                ]),
-            ];
-        }
-
-        return $conflicts;
     }
 }

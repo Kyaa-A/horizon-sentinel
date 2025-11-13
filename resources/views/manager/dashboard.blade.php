@@ -95,6 +95,102 @@
                 </div>
             </div>
 
+            <!-- Availability & Conflicts Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Team Availability Card -->
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                            Team Availability (Next 30 Days)
+                        </h3>
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                @php
+                                    $percentage = $currentAvailability['percentage'];
+                                    $barColor = $percentage >= 70 ? 'bg-green-500' : ($percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500');
+                                    $textColor = $percentage >= 70 ? 'text-green-600 dark:text-green-400' : ($percentage >= 50 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400');
+                                @endphp
+                                <div class="mb-4">
+                                    <div class="flex items-baseline">
+                                        <span class="text-4xl font-bold {{ $textColor }}">{{ $percentage }}%</span>
+                                        <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">available</span>
+                                    </div>
+                                </div>
+                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mb-4">
+                                    <div class="{{ $barColor }} h-3 rounded-full transition-all duration-300" style="width: {{ $percentage }}%"></div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-4 text-center text-sm">
+                                    <div>
+                                        <div class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ $currentAvailability['team_size'] }}</div>
+                                        <div class="text-gray-500 dark:text-gray-400">Team</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-2xl font-semibold text-green-600 dark:text-green-400">{{ $currentAvailability['available'] }}</div>
+                                        <div class="text-gray-500 dark:text-gray-400">Available</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-2xl font-semibold text-yellow-600 dark:text-yellow-400">{{ $currentAvailability['on_leave'] }}</div>
+                                        <div class="text-gray-500 dark:text-gray-400">On Leave</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conflicts Summary Card -->
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                            Conflict Summary
+                        </h3>
+                        @if ($conflictSummary['total_conflicts'] > 0)
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                                    <div class="flex items-center">
+                                        <svg class="h-8 w-8 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                        </svg>
+                                        <div class="ml-3">
+                                            <p class="text-sm font-medium text-red-800 dark:text-red-200">Critical Conflicts</p>
+                                            <p class="text-xs text-red-600 dark:text-red-400">Requires immediate attention</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-2xl font-bold text-red-600 dark:text-red-400">{{ $conflictSummary['critical_conflicts'] }}</span>
+                                </div>
+
+                                <div class="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                                    <div class="flex items-center">
+                                        <svg class="h-8 w-8 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                        </svg>
+                                        <div class="ml-3">
+                                            <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200">High Conflicts</p>
+                                            <p class="text-xs text-yellow-600 dark:text-yellow-400">Review carefully</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{{ $conflictSummary['high_conflicts'] }}</span>
+                                </div>
+
+                                <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                    <a href="{{ route('manager.pending-requests') }}" class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 font-medium">
+                                        Review {{ $conflictSummary['pending_requests'] }} pending request(s) →
+                                    </a>
+                                </div>
+                            </div>
+                        @else
+                            <div class="text-center py-8">
+                                <svg class="mx-auto h-12 w-12 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <p class="mt-2 text-sm font-medium text-green-600 dark:text-green-400">No conflicts detected</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">All pending requests look good</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
             <!-- Two Column Layout -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Recent Pending Requests -->

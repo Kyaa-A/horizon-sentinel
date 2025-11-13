@@ -73,22 +73,37 @@
                                                 <!-- Conflict Warnings -->
                                                 @if (!empty($request->conflicts))
                                                     @foreach ($request->conflicts as $conflict)
-                                                        <div class="mt-2 p-3 {{ $conflict['severity'] === 'high' ? 'bg-red-50 dark:bg-red-900 border-red-200 dark:border-red-700' : 'bg-yellow-50 dark:bg-yellow-900 border-yellow-200 dark:border-yellow-700' }} border rounded">
+                                                        @php
+                                                            $severityConfig = [
+                                                                'critical' => ['bg' => 'bg-red-100 dark:bg-red-900', 'border' => 'border-red-300 dark:border-red-700', 'icon' => 'text-red-500', 'text' => 'text-red-900 dark:text-red-200', 'detail' => 'text-red-800 dark:text-red-300'],
+                                                                'high' => ['bg' => 'bg-orange-50 dark:bg-orange-900/30', 'border' => 'border-orange-200 dark:border-orange-700', 'icon' => 'text-orange-500', 'text' => 'text-orange-900 dark:text-orange-200', 'detail' => 'text-orange-800 dark:text-orange-300'],
+                                                                'medium' => ['bg' => 'bg-yellow-50 dark:bg-yellow-900/30', 'border' => 'border-yellow-200 dark:border-yellow-700', 'icon' => 'text-yellow-500', 'text' => 'text-yellow-900 dark:text-yellow-200', 'detail' => 'text-yellow-800 dark:text-yellow-300'],
+                                                                'low' => ['bg' => 'bg-blue-50 dark:bg-blue-900/30', 'border' => 'border-blue-200 dark:border-blue-700', 'icon' => 'text-blue-500', 'text' => 'text-blue-900 dark:text-blue-200', 'detail' => 'text-blue-800 dark:text-blue-300'],
+                                                            ];
+                                                            $config = $severityConfig[$conflict['severity']] ?? $severityConfig['medium'];
+                                                        @endphp
+                                                        <div class="mt-2 p-3 {{ $config['bg'] }} border {{ $config['border'] }} rounded">
                                                             <div class="flex">
-                                                                <svg class="h-5 w-5 {{ $conflict['severity'] === 'high' ? 'text-red-400' : 'text-yellow-400' }}" fill="currentColor" viewBox="0 0 20 20">
+                                                                <svg class="h-5 w-5 {{ $config['icon'] }} flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                                                     <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
                                                                 </svg>
-                                                                <div class="ml-3">
-                                                                    <p class="text-sm font-medium {{ $conflict['severity'] === 'high' ? 'text-red-800 dark:text-red-200' : 'text-yellow-800 dark:text-yellow-200' }}">
-                                                                        {{ $conflict['message'] }}
+                                                                <div class="ml-3 flex-1">
+                                                                    <p class="text-sm font-medium {{ $config['text'] }}">
+                                                                        <span class="uppercase text-xs font-bold">{{ $conflict['severity'] }}:</span> {{ $conflict['message'] }}
                                                                     </p>
-                                                                    <div class="mt-1 text-sm {{ $conflict['severity'] === 'high' ? 'text-red-700 dark:text-red-300' : 'text-yellow-700 dark:text-yellow-300' }}">
-                                                                        <ul class="list-disc list-inside">
-                                                                            @foreach ($conflict['details'] as $detail)
-                                                                                <li>{{ $detail['employee'] }}: {{ $detail['dates'] }}</li>
-                                                                            @endforeach
-                                                                        </ul>
-                                                                    </div>
+                                                                    @if (!empty($conflict['details']) && is_array($conflict['details']) && isset($conflict['details'][0]))
+                                                                        <div class="mt-1 text-sm {{ $config['detail'] }}">
+                                                                            <ul class="list-disc list-inside">
+                                                                                @foreach ($conflict['details'] as $detail)
+                                                                                    @if (is_array($detail) && isset($detail['employee']))
+                                                                                        <li>{{ $detail['employee'] }}: {{ $detail['dates'] }}</li>
+                                                                                    @elseif (is_array($detail) && isset($detail['dates']))
+                                                                                        <li>{{ $detail['dates'] }} ({{ $detail['status'] ?? 'N/A' }})</li>
+                                                                                    @endif
+                                                                                @endforeach
+                                                                            </ul>
+                                                                        </div>
+                                                                    @endif
                                                                 </div>
                                                             </div>
                                                         </div>
