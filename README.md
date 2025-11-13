@@ -1,59 +1,221 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Horizon Sentinel
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+**A Digital Leave Request and Conflict Avoidance System for Horizon Dynamics**
 
-## About Laravel
+Built with Laravel 12, Tailwind CSS 4, and Supabase PostgreSQL.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 📖 Overview
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Horizon Sentinel is a modern leave management system that helps:
+- **Employees** submit and track time-off requests
+- **Managers** review requests and avoid staffing conflicts
+- **Teams** maintain visibility into scheduled absences
 
-## Learning Laravel
+**Current Status:** Foundation Complete - Connected to Supabase - Ready for Feature Development
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🚀 Quick Start
 
-## Laravel Sponsors
+### Prerequisites
+- PHP 8.2+
+- Composer
+- Node.js & pnpm
+- Supabase account (PostgreSQL database)
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Installation
 
-### Premium Partners
+1. **Clone and install dependencies:**
+```bash
+git clone <repository-url>
+cd horizon-sentinel
+composer install
+pnpm install
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+2. **Configure environment:**
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-## Contributing
+3. **Update `.env` with your Supabase credentials:**
+```env
+DB_CONNECTION=pgsql
+DB_HOST=aws-1-ap-southeast-2.pooler.supabase.com
+DB_PORT=6543
+DB_DATABASE=postgres
+DB_USERNAME=postgres.YOUR_PROJECT_REF
+DB_PASSWORD=your_password
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+4. **Run migrations:**
+```bash
+./migrate.sh
+```
 
-## Code of Conduct
+5. **Start development server:**
+```bash
+./start-dev.sh
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Visit http://127.0.0.1:8000
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## 🛠️ Development Commands
 
-## License
+### Most Used Commands
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+#### View Your Website
+```bash
+./start-dev.sh
+# Then open browser to: http://127.0.0.1:8000
+# Press Ctrl+C to stop
+```
+
+#### Update Database Tables
+```bash
+./migrate.sh
+```
+
+#### Run Any Laravel Command
+```bash
+./artisan.sh [command]
+```
+
+### Common Examples
+```bash
+./artisan.sh make:model LeaveRequest -mfc    # Create model + migration + controller
+./artisan.sh db:show                         # View database info
+./artisan.sh tinker                          # Interactive shell
+./migrate.sh --seed                          # Run migrations with test data
+./vendor/bin/pint                            # Format code
+```
+
+### 📖 For Complete Command Reference
+
+See **[COMMANDS.md](COMMANDS.md)** for:
+- Detailed explanation of what each command does
+- When to use each command
+- Common troubleshooting solutions
+- Quick reference guides
+
+---
+
+## 📚 Documentation
+
+- **[COMMANDS.md](COMMANDS.md)** - Complete command reference with explanations
+- **[ROADMAP.md](ROADMAP.md)** - Development phases and progress tracking
+- **[CLAUDE.md](CLAUDE.md)** - Technical documentation and architecture
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and changes
+- **[docs/](docs/)** - Phase-specific implementation guides
+
+---
+
+## 🏗️ Tech Stack
+
+- **Backend:** Laravel 12
+- **Database:** PostgreSQL (Supabase)
+- **Frontend:** Blade Templates, Tailwind CSS 4, Alpine.js
+- **Build Tool:** Vite
+- **Authentication:** Laravel Breeze
+
+---
+
+## ✅ What's Built
+
+### Phase 1 & 2: Foundation (COMPLETE)
+- ✅ Laravel 12 installed and configured
+- ✅ Supabase PostgreSQL connected (pooled + direct connections)
+- ✅ Laravel Breeze authentication (login, register, password reset)
+- ✅ Tailwind CSS 4 with Vite
+- ✅ Helper scripts for environment management
+- ✅ Development workflow optimized
+
+### Phase 3: Core Data Model (NEXT)
+- User roles (Employee/Manager)
+- Leave request model and migrations
+- Leave types and validation
+
+---
+
+## 🗄️ Database Configuration
+
+This project uses **Supabase PostgreSQL** with two connection types:
+
+- **Pooled Connection (Default - Port 6543):** Used for web requests, optimal for production
+- **Direct Connection (Port 5432):** Used for migrations, more reliable for schema changes
+
+The helper scripts (`./start-dev.sh`, `./migrate.sh`, `./artisan.sh`) automatically handle environment variable conflicts and use the correct connection type.
+
+---
+
+## 📋 Project Structure
+
+```
+horizon-sentinel/
+├── app/
+│   ├── Models/          # Eloquent models
+│   ├── Http/
+│   │   └── Controllers/ # Request handlers
+│   └── ...
+├── database/
+│   ├── migrations/      # Database schema
+│   └── seeders/         # Test data
+├── resources/
+│   ├── views/           # Blade templates
+│   ├── css/             # Tailwind styles
+│   └── js/              # Alpine.js & frontend
+├── routes/
+│   └── web.php          # Application routes
+├── docs/
+│   └── phases/          # Phase implementation guides
+├── start-dev.sh         # Start development environment
+├── migrate.sh           # Run migrations
+└── artisan.sh           # Run artisan commands
+```
+
+---
+
+## 🤝 Contributing
+
+This is a private project for Horizon Dynamics. For development workflow:
+
+1. Check [ROADMAP.md](ROADMAP.md) for current phase
+2. Read phase-specific docs in `docs/phases/`
+3. Follow the task list in `.cursor/.rules/process-task-list.md`
+4. Use helper scripts for all operations
+
+---
+
+## 📄 License
+
+Private - Horizon Dynamics Internal Project
+
+---
+
+## 🆘 Need Help?
+
+### I want to...
+
+**See my website in the browser**
+- Run: `./start-dev.sh`
+- Open: http://127.0.0.1:8000
+
+**Learn what a command does**
+- Read: [COMMANDS.md](COMMANDS.md) - Every command explained
+
+**See the development plan**
+- Check: [ROADMAP.md](ROADMAP.md) - What's done, what's next
+
+**Understand the technical setup**
+- Review: [CLAUDE.md](CLAUDE.md) - Architecture & configuration
+
+**See what changed recently**
+- View: [CHANGELOG.md](CHANGELOG.md) - Version history
+
+**Fix a problem**
+- Check: [COMMANDS.md](COMMANDS.md) → Troubleshooting section
