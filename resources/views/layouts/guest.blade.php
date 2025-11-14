@@ -26,15 +26,6 @@
                 <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary-900 dark:bg-primary-950 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-3xl opacity-15 dark:opacity-10 animate-pulse-slow" style="animation-delay: 2s;"></div>
             </div>
 
-            <!-- Branding -->
-            <div class="relative z-10 mb-10 animate-fade-in">
-                <a href="/" class="flex flex-col items-center group">
-                    <h1 class="text-5xl font-bold text-gray-900 dark:text-white group-hover:scale-105 transition-transform duration-300 drop-shadow-lg">
-                        Horizon Sentinel
-                    </h1>
-                </a>
-            </div>
-
             <!-- Main content card -->
             <div class="relative z-10 w-full sm:max-w-md mt-6 px-8 py-10 bg-white dark:bg-gray-800 backdrop-blur-xl shadow-horizon-lg overflow-hidden sm:rounded-3xl border border-gray-200 dark:border-gray-700 animate-slide-up">
                 <!-- Decorative corner elements -->

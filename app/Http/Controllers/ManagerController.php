@@ -33,6 +33,9 @@ class ManagerController extends Controller
         $this->ensureManager($request);
         $user = $request->user();
 
+        // Load direct reports count once and cache it
+        $user->loadCount('directReports');
+
         // Get statistics
         $pendingCount = LeaveRequest::forManager($user->id)->pending()->count();
         $approvedThisMonth = LeaveRequest::forManager($user->id)
@@ -71,7 +74,7 @@ class ManagerController extends Controller
         return view('manager.dashboard', [
             'pendingCount' => $pendingCount,
             'approvedThisMonth' => $approvedThisMonth,
-            'teamSize' => $user->directReports()->count(),
+            'teamSize' => $user->direct_reports_count,
             'recentRequests' => $recentRequests,
             'upcomingLeaves' => $upcomingLeaves,
             'conflictSummary' => $conflictSummary,
@@ -208,6 +211,9 @@ class ManagerController extends Controller
         $this->ensureManager($request);
         $user = $request->user();
 
+        // Load direct reports count once
+        $user->loadCount('directReports');
+
         // Get month and year from request, default to current
         $month = (int) $request->get('month', now()->month);
         $year = (int) $request->get('year', now()->year);
@@ -243,7 +249,7 @@ class ManagerController extends Controller
         return view('manager.team-calendar', [
             'leaves' => $leaves,
             'currentMonth' => $startDate,
-            'teamSize' => $user->directReports()->count(),
+            'teamSize' => $user->direct_reports_count,
             'dailyAvailability' => $dailyAvailability,
             'monthAvailability' => $monthAvailability,
         ]);
@@ -259,9 +265,30 @@ class ManagerController extends Controller
 
         // Get date from request, default to today
         $date = $request->filled('date') ? now()->parse($request->date) : now();
+        $dateFormatted = $date->format('Y-m-d');
+        $weekLaterFormatted = $date->copy()->addDays(7)->format('Y-m-d');
 
-        // Get all team members
-        $teamMembers = $user->directReports()->get();
+        // Get all team members with their leave requests in ONE query using eager loading
+        $teamMembers = $user->directReports()
+            ->with([
+                'leaveRequests' => function ($query) use ($dateFormatted, $weekLaterFormatted) {
+                    $query->where('status', 'approved')
+                        ->where(function ($q) use ($dateFormatted, $weekLaterFormatted) {
+                            // Current leave: overlaps with today
+                            $q->where(function ($subQ) use ($dateFormatted) {
+                                $subQ->where('start_date', '<=', $dateFormatted)
+                                    ->where('end_date', '>=', $dateFormatted);
+                            })
+                            // OR upcoming leave: starts within next 7 days
+                            ->orWhere(function ($subQ) use ($dateFormatted, $weekLaterFormatted) {
+                                $subQ->where('start_date', '>', $dateFormatted)
+                                    ->where('start_date', '<=', $weekLaterFormatted);
+                            });
+                        })
+                        ->orderBy('start_date');
+                },
+            ])
+            ->get();
 
         // Build team status data
         $teamStatus = [];
@@ -269,27 +296,26 @@ class ManagerController extends Controller
         $availableCount = 0;
 
         foreach ($teamMembers as $member) {
-            // Check if member has leave on this date
-            $currentLeave = $member->leaveRequests()
-                ->where('status', 'approved')
-                ->where('start_date', '<=', $date->format('Y-m-d'))
-                ->where('end_date', '>=', $date->format('Y-m-d'))
-                ->first();
+            // Separate current and upcoming leaves from the pre-loaded data
+            $currentLeave = null;
+            $upcomingLeave = null;
 
-            // Check for upcoming approved leave (within next 7 days)
-            $upcomingLeave = $member->leaveRequests()
-                ->where('status', 'approved')
-                ->where('start_date', '>', $date->format('Y-m-d'))
-                ->where('start_date', '<=', $date->copy()->addDays(7)->format('Y-m-d'))
-                ->orderBy('start_date')
-                ->first();
+            foreach ($member->leaveRequests as $leave) {
+                // Check if this leave overlaps with the selected date
+                if ($leave->start_date <= $dateFormatted && $leave->end_date >= $dateFormatted) {
+                    $currentLeave = $leave;
+                }
+                // Check if this is an upcoming leave
+                elseif ($leave->start_date > $dateFormatted && $leave->start_date <= $weekLaterFormatted) {
+                    if (! $upcomingLeave) {
+                        $upcomingLeave = $leave;
+                    }
+                }
+            }
 
             $status = 'available';
-            $leaveInfo = null;
-
             if ($currentLeave) {
                 $status = 'on_leave';
-                $leaveInfo = $currentLeave;
                 $onLeaveCount++;
             } else {
                 $availableCount++;

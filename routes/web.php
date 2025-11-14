@@ -19,11 +19,20 @@ Route::get('/', function () {
 Route::get('/dashboard', function () {
     $user = auth()->user();
 
-    // Get user's leave request statistics
-    $totalRequests = $user->leaveRequests()->count();
-    $pendingRequests = $user->leaveRequests()->where('status', 'pending')->count();
-    $approvedRequests = $user->leaveRequests()->where('status', 'approved')->count();
-    $deniedRequests = $user->leaveRequests()->where('status', 'denied')->count();
+    // Get all statistics in a single query using selectRaw
+    $stats = $user->leaveRequests()
+        ->selectRaw('
+            COUNT(*) as total,
+            SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as pending,
+            SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as approved,
+            SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as denied
+        ', ['pending', 'approved', 'denied'])
+        ->first();
+
+    $totalRequests = $stats->total ?? 0;
+    $pendingRequests = $stats->pending ?? 0;
+    $approvedRequests = $stats->approved ?? 0;
+    $deniedRequests = $stats->denied ?? 0;
 
     // Get upcoming approved leaves
     $upcomingLeaves = $user->leaveRequests()
