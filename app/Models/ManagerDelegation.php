@@ -33,6 +33,17 @@ class ManagerDelegation extends Model
     ];
 
     /**
+     * Set the is_active attribute.
+     * Ensures proper boolean handling for PostgreSQL with PDO emulation.
+     *
+     * @param  mixed  $value
+     */
+    public function setIsActiveAttribute($value): void
+    {
+        $this->attributes['is_active'] = $value ? 'true' : 'false';
+    }
+
+    /**
      * Get the manager who is delegating authority.
      */
     public function manager(): BelongsTo
@@ -74,7 +85,7 @@ class ManagerDelegation extends Model
         $date = $date ? Carbon::parse($date) : Carbon::today();
 
         $delegation = static::where('manager_id', $managerId)
-            ->where('is_active', true)
+            ->whereRaw('is_active = true')
             ->where('start_date', '<=', $date)
             ->where('end_date', '>=', $date)
             ->first();
@@ -87,7 +98,7 @@ class ManagerDelegation extends Model
      */
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->whereRaw('is_active = true');
     }
 
     /**
@@ -113,7 +124,7 @@ class ManagerDelegation extends Model
     {
         $today = Carbon::today();
 
-        return $query->where('is_active', true)
+        return $query->whereRaw('is_active = true')
             ->where('start_date', '<=', $today)
             ->where('end_date', '>=', $today);
     }

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\LeaveStatus;
+use App\Enums\LeaveType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -34,6 +36,7 @@ class LeaveBalance extends Model
         'pending' => 'decimal:2',
         'available' => 'decimal:2',
         'year' => 'integer',
+        'leave_type' => LeaveType::class,
     ];
 
     /**
@@ -59,7 +62,7 @@ class LeaveBalance extends Model
     {
         return $this->hasMany(LeaveRequest::class, 'user_id', 'user_id')
             ->where('leave_type', $this->leave_type)
-            ->where('status', 'pending');
+            ->where('status', LeaveStatus::Pending);
     }
 
     /**

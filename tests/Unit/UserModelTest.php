@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -89,7 +90,7 @@ class UserModelTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->assertEquals('employee', $user->role);
+        $this->assertEquals(UserRole::Employee, $user->role);
         $this->assertTrue($user->isEmployee());
     }
 }

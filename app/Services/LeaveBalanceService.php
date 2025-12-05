@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\LeaveStatus;
 use App\Models\CompanyHoliday;
 use App\Models\LeaveBalance;
 use App\Models\LeaveRequest;
@@ -67,8 +68,19 @@ class LeaveBalanceService
             ->where('year', $year)
             ->first();
 
+        // If no balance for this year, check previous year (will be created on reserve)
         if (!$balance) {
-            return false;
+            $balance = LeaveBalance::where('user_id', $userId)
+                ->where('leave_type', $leaveType)
+                ->where('year', $year - 1)
+                ->first();
+
+            if (!$balance) {
+                return false;
+            }
+
+            // Use previous year's total_allocated as available for validation
+            return $balance->total_allocated >= $days;
         }
 
         return $balance->hasSufficientBalance($days);
@@ -112,7 +124,7 @@ class LeaveBalanceService
         try {
             $leaveRequest = LeaveRequest::with('user')->findOrFail($leaveRequestId);
 
-            if ($leaveRequest->status !== 'approved') {
+            if ($leaveRequest->status !== LeaveStatus::Approved) {
                 throw new \Exception('Can only deduct balance from approved requests');
             }
 
@@ -160,7 +172,7 @@ class LeaveBalanceService
         try {
             $leaveRequest = LeaveRequest::with('user')->findOrFail($leaveRequestId);
 
-            if (!in_array($leaveRequest->status, ['denied', 'cancelled'])) {
+            if (!in_array($leaveRequest->status, [LeaveStatus::Denied, LeaveStatus::Cancelled])) {
                 throw new \Exception('Can only restore balance from denied or cancelled requests');
             }
 
@@ -183,7 +195,7 @@ class LeaveBalanceService
                 changeType: 'adjustment',
                 performedByUserId: auth()->id() ?? $leaveRequest->manager_id,
                 leaveRequestId: $leaveRequest->id,
-                notes: "Leave {$leaveRequest->status}: balance restored"
+                notes: "Leave {$leaveRequest->status->value}: balance restored"
             );
 
             DB::commit();
@@ -208,18 +220,38 @@ class LeaveBalanceService
         try {
             $leaveRequest = LeaveRequest::with('user')->findOrFail($leaveRequestId);
 
-            if ($leaveRequest->status !== 'pending') {
+            if ($leaveRequest->status !== LeaveStatus::Pending) {
                 throw new \Exception('Can only reserve balance for pending requests');
             }
 
+            $requestYear = $leaveRequest->start_date->year;
+
             $balance = LeaveBalance::where('user_id', $leaveRequest->user_id)
                 ->where('leave_type', $leaveRequest->leave_type)
-                ->where('year', $leaveRequest->start_date->year)
+                ->where('year', $requestYear)
                 ->lockForUpdate()
                 ->first();
 
+            // If balance doesn't exist for this year, try to create from previous year
             if (!$balance) {
-                throw new \Exception('Leave balance not found for user');
+                $previousYearBalance = LeaveBalance::where('user_id', $leaveRequest->user_id)
+                    ->where('leave_type', $leaveRequest->leave_type)
+                    ->where('year', $requestYear - 1)
+                    ->first();
+
+                if ($previousYearBalance) {
+                    $balance = LeaveBalance::create([
+                        'user_id' => $leaveRequest->user_id,
+                        'leave_type' => $leaveRequest->leave_type,
+                        'year' => $requestYear,
+                        'total_allocated' => $previousYearBalance->total_allocated,
+                        'used' => 0,
+                        'pending' => 0,
+                        'available' => $previousYearBalance->total_allocated,
+                    ]);
+                } else {
+                    throw new \Exception('Leave balance not found. Please contact HR to set up your leave balance.');
+                }
             }
 
             if (!$balance->hasSufficientBalance($leaveRequest->total_days)) {
@@ -249,12 +281,21 @@ class LeaveBalanceService
      * Initialize leave balances for a user for a specific year.
      *
      * @param  int  $userId
-     * @param  int  $year
-     * @param  array  $allocations  [leave_type => days]
+     * @param  int|null  $year
+     * @param  array|null  $allocations  [leave_type => days]
      * @return void
      */
-    public function initializeBalances(int $userId, int $year, array $allocations): void
+    public function initializeBalances(int $userId, ?int $year = null, ?array $allocations = null): void
     {
+        $year = $year ?? now()->year;
+
+        // Default allocations if not provided
+        $allocations = $allocations ?? [
+            'vacation' => 20,
+            'sick_leave' => 10,
+            'paid_time_off' => 15,
+        ];
+
         DB::beginTransaction();
 
         try {
@@ -277,7 +318,7 @@ class LeaveBalanceService
                     $balance->recordBalanceChange(
                         amount: $days,
                         changeType: 'accrual',
-                        performedByUserId: auth()->id() ?? 1,
+                        performedByUserId: auth()->id() ?? $userId,
                         notes: "Initial balance allocation for {$year}"
                     );
                 }
@@ -350,5 +391,44 @@ class LeaveBalanceService
         return LeaveBalance::where('user_id', $userId)
             ->where('year', $year)
             ->get();
+    }
+
+    /**
+     * Record a balance history entry for manual adjustments.
+     *
+     * @param  int  $userId
+     * @param  string  $leaveType
+     * @param  float  $amount
+     * @param  string  $changeType
+     * @param  int|null  $leaveRequestId
+     * @param  string|null  $notes
+     * @param  int|null  $year
+     * @return void
+     */
+    public function recordBalanceHistory(
+        int $userId,
+        string $leaveType,
+        float $amount,
+        string $changeType,
+        ?int $leaveRequestId = null,
+        ?string $notes = null,
+        ?int $year = null
+    ): void {
+        $year = $year ?? now()->year;
+
+        $balance = LeaveBalance::where('user_id', $userId)
+            ->where('leave_type', $leaveType)
+            ->where('year', $year)
+            ->first();
+
+        if ($balance) {
+            $balance->recordBalanceChange(
+                amount: $amount,
+                changeType: $changeType,
+                performedByUserId: auth()->id() ?? $userId,
+                leaveRequestId: $leaveRequestId,
+                notes: $notes
+            );
+        }
     }
 }

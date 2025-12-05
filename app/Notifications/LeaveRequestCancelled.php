@@ -37,7 +37,7 @@ class LeaveRequestCancelled extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $employee = $this->leaveRequest->user;
-        $leaveTypeFormatted = str_replace('_', ' ', ucwords($this->leaveRequest->leave_type, '_'));
+        $leaveTypeFormatted = $this->leaveRequest->leave_type->label();
 
         return (new MailMessage)
             ->subject('Leave Request Cancelled by Employee')
@@ -51,7 +51,7 @@ class LeaveRequestCancelled extends Notification
             ->line('Status: Cancelled')
             ->action('View Request', route('manager.show-request', $this->leaveRequest))
             ->line('This request has been removed from pending approvals.')
-            ->salutation('Best regards, Horizon Sentinel');
+            ->salutation('Best regards, Pahinga');
     }
 
     /**

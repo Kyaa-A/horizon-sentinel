@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\LeaveStatus;
+use App\Enums\LeaveType;
 use App\Http\Requests\LeaveRequestFormRequest;
 use App\Models\LeaveRequest;
 use App\Models\ManagerDelegation;
@@ -76,18 +78,11 @@ class LeaveRequestController extends Controller
     {
         $user = $request->user();
 
-        $leaveTypes = [
-            'paid_time_off' => 'Paid Time Off',
-            'unpaid_leave' => 'Unpaid Leave',
-            'sick_leave' => 'Sick Leave',
-            'vacation' => 'Vacation',
-        ];
-
         // Get leave balances for the current year
         $leaveBalances = $this->leaveBalanceService->getUserBalances($user->id);
 
         return view('leave-requests.create', [
-            'leaveTypes' => $leaveTypes,
+            'leaveTypes' => LeaveType::toArray(),
             'leaveBalances' => $leaveBalances,
         ]);
     }
@@ -114,11 +109,13 @@ class LeaveRequestController extends Controller
             region: $user->department
         );
 
-        // Check if user has sufficient balance
+        // Check if user has sufficient balance (use start date year for balance lookup)
+        $leaveYear = \Carbon\Carbon::parse($request->start_date)->year;
         if (! $this->leaveBalanceService->validateBalanceSufficiency(
             $user->id,
             $request->leave_type,
-            $totalDays
+            $totalDays,
+            $leaveYear
         )) {
             return back()
                 ->withErrors(['balance' => 'Insufficient leave balance for this request.'])
@@ -146,31 +143,15 @@ class LeaveRequestController extends Controller
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'total_days' => $totalDays,
-            'status' => 'pending',
+            'status' => LeaveStatus::Pending,
         ]);
 
-        // Check for conflicts with existing approved/pending leaves
+        // Check for conflicts with existing approved/pending leaves (for warning only)
         $conflicts = $this->conflictDetectionService->checkConflicts($tempLeaveRequest, $approvingManagerId);
-
-        // Filter for team overlap conflicts (warn about pending/approved leaves)
         $teamConflicts = collect($conflicts)->filter(function ($conflict) {
             return in_array($conflict['type'], ['overlap', 'availability']);
         });
-
-        if ($teamConflicts->isNotEmpty()) {
-            $conflictMessages = $teamConflicts->map(function ($conflict) {
-                $message = $conflict['message'];
-                if (isset($conflict['details']) && is_array($conflict['details']) && isset($conflict['details'][0]['employee'])) {
-                    $employees = collect($conflict['details'])->pluck('employee')->join(', ');
-                    $message .= ": {$employees}";
-                }
-                return $message;
-            })->join(' | ');
-
-            return back()
-                ->withErrors(['conflict' => "⚠️ Team Conflict Detected: {$conflictMessages}. Your request can still be submitted, but your manager will need to review team availability."])
-                ->withInput();
-        }
+        $hasConflicts = $teamConflicts->isNotEmpty();
 
         // Create the leave request
         $leaveRequest = LeaveRequest::create([
@@ -180,7 +161,7 @@ class LeaveRequestController extends Controller
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'total_days' => $totalDays,
-            'status' => 'pending',
+            'status' => LeaveStatus::Pending,
             'employee_notes' => $request->employee_notes,
             'attachment_path' => $attachmentPath,
             'submitted_at' => now(),
@@ -201,12 +182,26 @@ class LeaveRequestController extends Controller
         // Record history
         $leaveRequest->recordHistory('submitted', $user->id, 'Leave request submitted');
 
-        // Send notification to manager
-        $leaveRequest->manager->notify(new LeaveRequestSubmitted($leaveRequest));
+        // Send notification to manager (wrapped in try-catch to prevent blocking on mail errors)
+        try {
+            $leaveRequest->manager->notify(new LeaveRequestSubmitted($leaveRequest));
+        } catch (\Exception $e) {
+            // Log the error but don't fail the request
+            logger()->warning('Failed to send leave request notification', [
+                'leave_request_id' => $leaveRequest->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
-        return redirect()
-            ->route('leave-requests.show', $leaveRequest)
+        $redirect = redirect()->route('leave-requests.show', $leaveRequest)
             ->with('success', 'Your leave request has been submitted successfully!');
+
+        // Add warning if there were team conflicts
+        if ($hasConflicts) {
+            $redirect->with('warning', 'Note: There are team members on leave during this period. Your manager will review team availability.');
+        }
+
+        return $redirect;
     }
 
     /**
@@ -237,7 +232,7 @@ class LeaveRequestController extends Controller
         }
 
         $leaveRequest->update([
-            'status' => 'cancelled',
+            'status' => LeaveStatus::Cancelled,
         ]);
 
         // Restore balance (move from pending/used back to available)
@@ -257,8 +252,15 @@ class LeaveRequestController extends Controller
             'Cancelled by employee'
         );
 
-        // Send notification to manager
-        $leaveRequest->manager->notify(new LeaveRequestCancelled($leaveRequest));
+        // Send notification to manager (wrapped in try-catch to prevent blocking on mail errors)
+        try {
+            $leaveRequest->manager->notify(new LeaveRequestCancelled($leaveRequest));
+        } catch (\Exception $e) {
+            logger()->warning('Failed to send cancellation notification', [
+                'leave_request_id' => $leaveRequest->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return redirect()
             ->route('leave-requests.index')

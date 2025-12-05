@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRole;
 use App\Models\CompanyHoliday;
 use App\Models\LeaveBalance;
 use App\Models\LeavePolicy;
@@ -24,25 +25,14 @@ class HRAdminController extends Controller
     }
 
     /**
-     * Check if the user is an HR admin.
-     */
-    protected function ensureHRAdmin(Request $request): void
-    {
-        if (! $request->user()->isHRAdmin()) {
-            abort(403, 'Access denied. HR Admin privileges required.');
-        }
-    }
-
-    /**
      * Display the HR Admin dashboard with system-wide statistics.
      */
     public function dashboard(Request $request): View
     {
-        $this->ensureHRAdmin($request);
 
         // Get system-wide statistics
-        $totalEmployees = User::where('role', 'employee')->count();
-        $totalManagers = User::where('role', 'manager')->count();
+        $totalEmployees = User::where('role', UserRole::Employee)->count();
+        $totalManagers = User::where('role', UserRole::Manager)->count();
         $totalUsers = $totalEmployees + $totalManagers;
 
         $pendingRequests = LeaveRequest::pending()->count();
@@ -99,7 +89,7 @@ class HRAdminController extends Controller
      */
     public function users(Request $request): View
     {
-        $this->ensureHRAdmin($request);
+        
 
         $users = User::with(['leaveBalances', 'manager'])
             ->when($request->filled('role'), function ($query) use ($request) {
@@ -130,12 +120,13 @@ class HRAdminController extends Controller
      */
     public function createUser(): View
     {
-        $managers = User::where('role', 'manager')->orderBy('name')->get();
+        $managers = User::where('role', UserRole::Manager)->orderBy('name')->get();
         $departments = User::select('department')->distinct()->whereNotNull('department')->pluck('department');
 
         return view('hr-admin.users.create', [
             'managers' => $managers,
             'departments' => $departments,
+            'roles' => UserRole::toArray(),
         ]);
     }
 
@@ -144,13 +135,13 @@ class HRAdminController extends Controller
      */
     public function storeUser(Request $request): RedirectResponse
     {
-        $this->ensureHRAdmin($request);
+        
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role' => ['required', Rule::in(['employee', 'manager', 'hr_admin'])],
+            'role' => ['required', Rule::enum(UserRole::class)],
             'department' => 'nullable|string|max:255',
             'manager_id' => 'nullable|exists:users,id',
         ]);
@@ -168,7 +159,7 @@ class HRAdminController extends Controller
             ]);
 
             // Initialize leave balances for employees
-            if ($user->role === 'employee') {
+            if ($user->role === UserRole::Employee) {
                 $this->leaveBalanceService->initializeBalances($user->id);
             }
 
@@ -191,7 +182,7 @@ class HRAdminController extends Controller
      */
     public function editUser(User $user): View
     {
-        $managers = User::where('role', 'manager')
+        $managers = User::where('role', UserRole::Manager)
             ->where('id', '!=', $user->id)
             ->orderBy('name')
             ->get();
@@ -202,6 +193,7 @@ class HRAdminController extends Controller
             'user' => $user,
             'managers' => $managers,
             'departments' => $departments,
+            'roles' => UserRole::toArray(),
         ]);
     }
 
@@ -210,13 +202,13 @@ class HRAdminController extends Controller
      */
     public function updateUser(Request $request, User $user): RedirectResponse
     {
-        $this->ensureHRAdmin($request);
+        
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|string|min:8|confirmed',
-            'role' => ['required', Rule::in(['employee', 'manager', 'hr_admin'])],
+            'role' => ['required', Rule::enum(UserRole::class)],
             'department' => 'nullable|string|max:255',
             'manager_id' => 'nullable|exists:users,id',
         ]);
@@ -237,8 +229,8 @@ class HRAdminController extends Controller
 
         try {
             // If role changed from non-employee to employee, initialize balances
-            $roleChanged = $user->role !== $validated['role'];
-            $becameEmployee = $roleChanged && $validated['role'] === 'employee';
+            $roleChanged = $user->role->value !== $validated['role'];
+            $becameEmployee = $roleChanged && $validated['role'] === UserRole::Employee->value;
 
             $user->update($updateData);
 
@@ -265,7 +257,7 @@ class HRAdminController extends Controller
      */
     public function balances(Request $request): View
     {
-        $this->ensureHRAdmin($request);
+        
 
         $balances = LeaveBalance::with(['user'])
             ->when($request->filled('user_id'), function ($query) use ($request) {
@@ -278,7 +270,7 @@ class HRAdminController extends Controller
             ->orderBy('leave_type')
             ->paginate(20);
 
-        $users = User::where('role', 'employee')->orderBy('name')->get();
+        $users = User::where('role', UserRole::Employee)->orderBy('name')->get();
 
         return view('hr-admin.balances.index', [
             'balances' => $balances,
@@ -301,7 +293,7 @@ class HRAdminController extends Controller
      */
     public function updateBalance(Request $request, LeaveBalance $balance): RedirectResponse
     {
-        $this->ensureHRAdmin($request);
+        
 
         $validated = $request->validate([
             'available_days' => 'required|numeric|min:0',
@@ -341,7 +333,7 @@ class HRAdminController extends Controller
      */
     public function holidays(Request $request): View
     {
-        $this->ensureHRAdmin($request);
+        
 
         $holidays = CompanyHoliday::when($request->filled('year'), function ($query) use ($request) {
             $query->whereYear('date', $request->year);
@@ -370,7 +362,7 @@ class HRAdminController extends Controller
      */
     public function storeHoliday(Request $request): RedirectResponse
     {
-        $this->ensureHRAdmin($request);
+        
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -400,7 +392,7 @@ class HRAdminController extends Controller
      */
     public function updateHoliday(Request $request, CompanyHoliday $holiday): RedirectResponse
     {
-        $this->ensureHRAdmin($request);
+        
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -432,7 +424,7 @@ class HRAdminController extends Controller
      */
     public function reports(Request $request): View
     {
-        $this->ensureHRAdmin($request);
+        
 
         $year = $request->filled('year') ? $request->year : now()->year;
 

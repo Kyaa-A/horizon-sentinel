@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\LeaveStatus;
 use App\Models\LeaveRequest;
 use App\Models\User;
 use Carbon\Carbon;
@@ -60,7 +61,7 @@ class ConflictDetectionService
     protected function getOverlappingLeaves(LeaveRequest $leaveRequest, int $managerId): Collection
     {
         return LeaveRequest::forManager($managerId)
-            ->whereIn('status', ['approved', 'pending'])
+            ->whereIn('status', [LeaveStatus::Approved, LeaveStatus::Pending])
             ->where('id', '!=', $leaveRequest->id)
             ->where('user_id', '!=', $leaveRequest->user_id) // Exclude same employee
             ->overlapping(
@@ -99,7 +100,7 @@ class ConflictDetectionService
 
         // Count how many people would be on leave
         $overlappingCount = LeaveRequest::forManager($managerId)
-            ->whereIn('status', ['approved', 'pending'])
+            ->whereIn('status', [LeaveStatus::Approved, LeaveStatus::Pending])
             ->where('id', '!=', $leaveRequest->id)
             ->overlapping(
                 $leaveRequest->start_date->format('Y-m-d'),
@@ -146,7 +147,7 @@ class ConflictDetectionService
 
         $nearbyLeaves = LeaveRequest::where('user_id', $leaveRequest->user_id)
             ->where('id', '!=', $leaveRequest->id)
-            ->whereIn('status', ['approved', 'pending'])
+            ->whereIn('status', [LeaveStatus::Approved, LeaveStatus::Pending])
             ->where(function ($query) use ($checkStartDate, $checkEndDate) {
                 $query->whereBetween('start_date', [$checkStartDate, $checkEndDate])
                     ->orWhereBetween('end_date', [$checkStartDate, $checkEndDate]);
@@ -192,7 +193,7 @@ class ConflictDetectionService
 
         // Get all leaves in the period
         $leaves = LeaveRequest::forManager($managerId)
-            ->whereIn('status', ['approved', 'pending'])
+            ->whereIn('status', [LeaveStatus::Approved, LeaveStatus::Pending])
             ->overlapping($startDate->format('Y-m-d'), $endDate->format('Y-m-d'))
             ->get();
 

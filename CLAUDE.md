@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Horizon Sentinel is a digital leave request and conflict avoidance system built for Horizon Dynamics. It's a Laravel 12 application with Tailwind CSS 4 that manages employee time-off requests and manager approvals, with the core goal of preventing staffing conflicts through centralized visibility and calendar-based conflict detection.
+**Pahinga** - *Personnel Absence & Holiday Integrated Notification Gateway Application*
+
+Pahinga is a digital leave request and conflict avoidance system. It's a Laravel 12 application with Tailwind CSS 4, Livewire 3, and PostgreSQL that manages employee time-off requests and manager approvals, with the core goal of preventing staffing conflicts through centralized visibility and calendar-based conflict detection.
 
 **Key Domain Concepts:**
 - **Employees** submit leave requests (PTO, Sick Leave, Vacation, Unpaid Leave) with date ranges
@@ -149,7 +151,7 @@ Default setup uses SQLite (`database/database.sqlite`). For MySQL, update `.env`
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=horizon_sentinel
+DB_DATABASE=pahinga
 DB_USERNAME=root
 DB_PASSWORD=
 ```
@@ -163,7 +165,7 @@ Tests use in-memory SQLite and array drivers for cache/session (see `phpunit.xml
 - **Security**: Implement CSRF protection (enabled by default), XSS prevention, proper authorization checks
 - **Performance**: Keep queries efficient, use eager loading to avoid N+1 queries on calendar views
 - **Usability**: Intuitive navigation for non-technical users (employees/managers)
-- **Scalability**: Design to accommodate growing employee base at Horizon Dynamics
+- **Scalability**: Design to accommodate growing employee base
 
 ## Initial Setup (for fresh clones)
 ```bash

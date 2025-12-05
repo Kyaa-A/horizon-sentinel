@@ -37,7 +37,7 @@ class LeaveRequestApproved extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $manager = $this->leaveRequest->manager;
-        $leaveTypeFormatted = str_replace('_', ' ', ucwords($this->leaveRequest->leave_type, '_'));
+        $leaveTypeFormatted = $this->leaveRequest->leave_type->label();
 
         return (new MailMessage)
             ->subject('Leave Request Approved')
@@ -52,7 +52,7 @@ class LeaveRequestApproved extends Notification
             })
             ->action('View Request', route('leave-requests.show', $this->leaveRequest))
             ->line('Your leave balance has been updated accordingly.')
-            ->salutation('Best regards, Horizon Sentinel');
+            ->salutation('Best regards, Pahinga');
     }
 
     /**

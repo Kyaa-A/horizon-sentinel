@@ -82,7 +82,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-900 dark:text-gray-100">
                         <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                             <h3 class="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Leave Type</h3>
-                            <p class="text-lg font-bold text-gray-900 dark:text-gray-100">{{ ucwords(str_replace('_', ' ', $leaveRequest->leave_type)) }}</p>
+                            <p class="text-lg font-bold text-gray-900 dark:text-gray-100">{{ $leaveRequest->leave_type->label() }}</p>
                         </div>
 
                         <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">

@@ -37,7 +37,7 @@ class LeaveRequestSubmitted extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $employee = $this->leaveRequest->user;
-        $leaveTypeFormatted = str_replace('_', ' ', ucwords($this->leaveRequest->leave_type, '_'));
+        $leaveTypeFormatted = $this->leaveRequest->leave_type->label();
 
         return (new MailMessage)
             ->subject('New Leave Request Pending Your Review')
@@ -53,7 +53,7 @@ class LeaveRequestSubmitted extends Notification
             })
             ->action('Review Request', route('manager.show-request', $this->leaveRequest))
             ->line('Please review this request at your earliest convenience.')
-            ->salutation('Best regards, Horizon Sentinel');
+            ->salutation('Best regards, Pahinga');
     }
 
     /**

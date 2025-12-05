@@ -29,11 +29,22 @@ class LeavePolicy extends Model
     ];
 
     /**
+     * Set the is_active attribute.
+     * Ensures proper boolean handling for PostgreSQL with PDO emulation.
+     *
+     * @param  mixed  $value
+     */
+    public function setIsActiveAttribute($value): void
+    {
+        $this->attributes['is_active'] = $value ? 'true' : 'false';
+    }
+
+    /**
      * Scope a query to only include active policies.
      */
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->whereRaw('is_active = true');
     }
 
     /**

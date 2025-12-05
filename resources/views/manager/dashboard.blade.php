@@ -234,7 +234,7 @@
                                                 {{ $request->user->name }}
                                             </p>
                                             <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                                {{ ucwords(str_replace('_', ' ', $request->leave_type)) }} • {{ $request->start_date->format('M d') }} - {{ $request->end_date->format('M d') }}
+                                                {{ $request->leave_type->label() }} • {{ $request->start_date->format('M d') }} - {{ $request->end_date->format('M d') }}
                                             </p>
                                         </div>
                                         <a href="{{ route('manager.show-request', $request) }}" class="ml-4 inline-flex items-center px-4 py-2 bg-primary-800 dark:bg-primary-700 text-white rounded-lg text-xs font-semibold hover:bg-primary-900 dark:hover:bg-primary-600 transition-colors">

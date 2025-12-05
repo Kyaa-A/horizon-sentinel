@@ -48,7 +48,7 @@ class LeaveBalanceServiceTest extends TestCase
     public function it_calculates_working_days_excluding_weekends_and_holidays()
     {
         // Create a holiday on Wednesday
-        CompanyHoliday::create([
+        CompanyHoliday::factory()->create([
             'name' => 'Test Holiday',
             'date' => '2025-11-19', // Wednesday
             'is_recurring' => false,

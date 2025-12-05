@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\LeaveType;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class LeaveRequestFormRequest extends FormRequest
 {
@@ -25,7 +27,7 @@ class LeaveRequestFormRequest extends FormRequest
             'leave_type' => [
                 'required',
                 'string',
-                'in:paid_time_off,unpaid_leave,sick_leave,vacation',
+                Rule::enum(LeaveType::class),
             ],
             'start_date' => [
                 'required',
@@ -75,7 +77,7 @@ class LeaveRequestFormRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'leave_type.in' => 'Please select a valid leave type.',
+            'leave_type.Illuminate\Validation\Rules\Enum' => 'Please select a valid leave type.',
             'start_date.after_or_equal' => 'Start date cannot be in the past.',
             'end_date.after_or_equal' => 'End date must be on or after the start date.',
             'attachment.mimes' => 'Attachment must be a PDF, JPG, PNG, or Word document.',

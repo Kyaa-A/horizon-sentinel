@@ -142,7 +142,7 @@
 
                                             @if($item['current_leave'])
                                                 <div class="text-sm text-gray-700 dark:text-gray-300">
-                                                    <p class="font-semibold">{{ ucfirst(str_replace('_', ' ', $item['current_leave']->leave_type)) }}</p>
+                                                    <p class="font-semibold">{{ $item['current_leave']->leave_type->label() }}</p>
                                                     <p class="text-gray-600 dark:text-gray-400">{{ $item['current_leave']->start_date->format('M d') }} - {{ $item['current_leave']->end_date->format('M d, Y') }}</p>
                                                     <p class="text-xs text-gray-500 dark:text-gray-500">({{ $item['current_leave']->start_date->diffInDays($item['current_leave']->end_date) + 1 }} days)</p>
                                                 </div>
@@ -151,7 +151,7 @@
                                             @if($item['upcoming_leave'] && !$item['current_leave'])
                                                 <div class="text-xs text-primary-700 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 px-3 py-1 rounded-md">
                                                     <p class="font-semibold">Upcoming: {{ $item['upcoming_leave']->start_date->format('M d') }}</p>
-                                                    <p>{{ ucfirst(str_replace('_', ' ', $item['upcoming_leave']->leave_type)) }}</p>
+                                                    <p>{{ $item['upcoming_leave']->leave_type->label() }}</p>
                                                 </div>
                                             @endif
                                         </div>

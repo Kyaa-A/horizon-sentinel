@@ -5,8 +5,9 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ Auth::user()->isHRAdmin() ? route('hr-admin.dashboard') : (Auth::user()->isManager() ? route('manager.dashboard') : route('dashboard')) }}" class="flex items-center space-x-2">
-                        <span class="text-2xl font-bold bg-gradient-horizon bg-clip-text text-transparent">Horizon Sentinel</span>
+                    <a href="{{ Auth::user()->isHRAdmin() ? route('hr-admin.dashboard') : (Auth::user()->isManager() ? route('manager.dashboard') : route('dashboard')) }}" class="flex items-center space-x-3">
+                        <img src="{{ asset('pahinga.png') }}" alt="Pahinga" class="h-10 w-10">
+                        <span class="text-2xl font-bold text-primary-800 dark:text-teal-400">Pahinga</span>
                     </a>
                 </div>
 
@@ -59,72 +60,12 @@
             </div>
 
             <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
-                <!-- Notifications Dropdown -->
-                <div class="relative" style="margin-right: 32px;" x-data="{
-                    open: false,
-                    unreadCount: {{ Auth::user()->unreadNotifications()->count() }}
-                }" @click.away="open = false">
-                    <button @click="open = !open" class="relative rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-navy-500">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                        </svg>
-                        <span x-show="unreadCount > 0" x-text="unreadCount" class="absolute right-0 top-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white"></span>
-                    </button>
+            <div class="hidden sm:flex sm:items-center sm:ms-6 gap-2">
+                <!-- Dark Mode Toggle -->
+                <livewire:dark-mode-toggle />
 
-                    <!-- Dropdown -->
-                    <div x-show="open"
-                         x-transition:enter="transition ease-out duration-200"
-                         x-transition:enter-start="opacity-0 scale-95"
-                         x-transition:enter-end="opacity-100 scale-100"
-                         x-transition:leave="transition ease-in duration-75"
-                         x-transition:leave-start="opacity-100 scale-100"
-                         x-transition:leave-end="opacity-0 scale-95"
-                         class="absolute right-0 z-50 mt-2 w-96 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5"
-                         style="display: none;">
-                        <div class="border-b border-gray-200 px-4 py-3">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
-                                <a href="{{ route('notifications.index') }}" class="text-xs font-medium text-navy-600 hover:text-navy-900">View All</a>
-                            </div>
-                        </div>
-
-                        <div class="max-h-96 overflow-y-auto">
-                            @forelse(Auth::user()->unreadNotifications()->limit(5)->get() as $notification)
-                                @php
-                                    $data = $notification->data;
-                                @endphp
-                                <a href="{{ route('notifications.mark-as-read', $notification->id) }}"
-                                   onclick="event.preventDefault(); document.getElementById('notification-{{ $notification->id }}').submit();"
-                                   class="block border-b border-gray-100 px-4 py-3 hover:bg-gray-50">
-                                    <p class="text-sm font-medium text-gray-900">{{ $data['message'] ?? 'Notification' }}</p>
-                                    <p class="mt-1 text-xs text-gray-500">{{ $notification->created_at->diffForHumans() }}</p>
-                                </a>
-                                <form id="notification-{{ $notification->id }}" method="POST" action="{{ route('notifications.mark-as-read', $notification->id) }}" style="display: none;">
-                                    @csrf
-                                </form>
-                            @empty
-                                <div class="px-4 py-8 text-center">
-                                    <svg class="mx-auto h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                                    </svg>
-                                    <p class="mt-2 text-sm text-gray-500">No new notifications</p>
-                                </div>
-                            @endforelse
-                        </div>
-
-                        @if(Auth::user()->unreadNotifications()->count() > 0)
-                            <div class="border-t border-gray-200 px-4 py-2">
-                                <form method="POST" action="{{ route('notifications.mark-all-read') }}">
-                                    @csrf
-                                    <button type="submit" class="w-full text-center text-xs font-medium text-navy-600 hover:text-navy-900">
-                                        Mark All as Read
-                                    </button>
-                                </form>
-                            </div>
-                        @endif
-                    </div>
-                </div>
+                <!-- Notifications Bell (Livewire) -->
+                <livewire:notification-bell />
 
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">

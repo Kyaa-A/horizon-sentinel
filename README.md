@@ -1,289 +1,295 @@
-# Horizon Sentinel
+# Pahinga
 
-**A Digital Leave Request and Conflict Avoidance System for Horizon Dynamics**
+**Personnel Absence & Holiday Integrated Notification Gateway Application**
 
-Built with Laravel 12, Tailwind CSS 4, and Supabase PostgreSQL.
+*"Pahinga" (Filipino) - Rest, Break*
 
----
-
-## 📖 Overview
-
-Horizon Sentinel is a modern leave management system that helps:
-- **Employees** submit and track time-off requests
-- **Managers** review requests and avoid staffing conflicts
-- **Teams** maintain visibility into scheduled absences
-
-**Current Status:** 🎉 **MVP COMPLETE** - All core features implemented and tested
+Built with Laravel 12, Livewire 3, Tailwind CSS 4, and PostgreSQL.
 
 ---
 
-## 🚀 Quick Start
+## Overview
+
+Pahinga is a modern leave management system designed for organizations that need:
+- **Employees** to submit and track time-off requests effortlessly
+- **Managers** to review requests with conflict awareness before approving
+- **HR Admins** to manage company-wide leave policies, balances, and holidays
+- **Teams** to maintain visibility into scheduled absences
+
+**Current Status:** Production Ready - All core features implemented and tested
+
+---
+
+## Features
+
+### Employee Portal
+- Submit leave requests (Vacation, Sick Leave, PTO, Unpaid Leave)
+- Track request status with real-time notifications
+- Cancel pending or approved requests
+- View complete request history with audit trail
+- See remaining leave balances
+
+### Manager Dashboard
+- Review pending requests with team calendar context
+- Approve/deny with optional notes
+- **Conflict Detection** with severity levels:
+  - Overlapping team member leaves
+  - Team availability warnings (< 30%)
+  - Sequential leave pattern detection
+- Team availability calendar
+- Manager delegation for temporary absence
+
+### HR Admin Console
+- User management (create, edit, assign roles/managers)
+- Leave balance management and adjustments
+- Company holiday configuration
+- Company-wide reports with yearly trends
+- Leave type distribution analytics
+- Department breakdown statistics
+
+### System Features
+- **Role-Based Access Control** - Employee, Manager, HR Admin
+- **Dark Mode** - Full dark mode support throughout
+- **Toast Notifications** - Real-time feedback with auto-dismiss
+- **PHP Enums** - Type-safe leave types, statuses, and roles
+- **Livewire 3** - Dynamic components for seamless UX
+- **Responsive Design** - Mobile-friendly interface
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Backend | Laravel 12 (PHP 8.2+) |
+| Database | PostgreSQL (Supabase) |
+| Frontend | Blade, Livewire 3, Alpine.js |
+| Styling | Tailwind CSS 4 |
+| Build | Vite |
+| Auth | Laravel Breeze |
+
+---
+
+## Quick Start
 
 ### Prerequisites
 - PHP 8.2+
 - Composer
-- Node.js & pnpm
-- Supabase account (PostgreSQL database)
+- Node.js & pnpm (or npm)
+- PostgreSQL database (Supabase recommended)
 
 ### Installation
 
-1. **Clone and install dependencies:**
 ```bash
+# Clone repository
 git clone <repository-url>
-cd horizon-sentinel
+cd pahinga
+
+# Install dependencies
 composer install
 pnpm install
-```
 
-2. **Configure environment:**
-```bash
+# Configure environment
 cp .env.example .env
 php artisan key:generate
-```
 
-3. **Update `.env` with your Supabase credentials:**
-```env
-DB_CONNECTION=pgsql
-DB_HOST=aws-1-ap-southeast-2.pooler.supabase.com
-DB_PORT=6543
-DB_DATABASE=postgres
-DB_USERNAME=postgres.YOUR_PROJECT_REF
-DB_PASSWORD=your_password
-```
+# Update .env with database credentials
+# DB_CONNECTION=pgsql
+# DB_HOST=your-host
+# DB_PORT=6543
+# DB_DATABASE=postgres
+# DB_USERNAME=your-username
+# DB_PASSWORD=your-password
 
-4. **Run migrations:**
-```bash
-./migrate.sh
-```
+# Run migrations with seed data
+./migrate.sh --seed
 
-5. **Start development server:**
-```bash
+# Start development server
 ./start-dev.sh
 ```
 
 Visit http://127.0.0.1:8000
 
+### Test Accounts (after seeding)
+
+| Role | Email | Password |
+|------|-------|----------|
+| Employee | emily.chen@horizondynamics.com | password |
+| Manager | michael.rodriguez@horizondynamics.com | password |
+| HR Admin | patricia.williams@horizondynamics.com | password |
+
 ---
 
-## 🛠️ Development Commands
+## Development Commands
 
-### Most Used Commands
-
-#### View Your Website
 ```bash
+# Start development environment
 ./start-dev.sh
-# Then open browser to: http://127.0.0.1:8000
-# Press Ctrl+C to stop
-```
 
-#### Update Database Tables
-```bash
+# Run migrations
 ./migrate.sh
-```
 
-#### Run Any Laravel Command
-```bash
+# Run migrations with fresh seed
+./migrate.sh --seed
+
+# Run any artisan command
 ./artisan.sh [command]
+
+# Run tests
+php artisan test
+
+# Format code
+./vendor/bin/pint
 ```
 
-### Common Examples
-```bash
-./artisan.sh make:model LeaveRequest -mfc    # Create model + migration + controller
-./artisan.sh db:show                         # View database info
-./artisan.sh tinker                          # Interactive shell
-./migrate.sh --seed                          # Run migrations with test data
-./vendor/bin/pint                            # Format code
-php artisan test                             # Run test suite
-```
-
-### 📖 For Complete Command Reference
-
-See **[COMMANDS.md](COMMANDS.md)** for:
-- Detailed explanation of what each command does
-- When to use each command
-- Common troubleshooting solutions
-- Quick reference guides
-
 ---
 
-## 📚 Documentation
-
-- **[COMMANDS.md](COMMANDS.md)** - Complete command reference with explanations
-- **[ROADMAP.md](ROADMAP.md)** - Development phases and progress tracking
-- **[CLAUDE.md](CLAUDE.md)** - Technical documentation and architecture
-- **[CHANGELOG.md](CHANGELOG.md)** - Version history and changes
-- **[docs/](docs/)** - Phase-specific implementation guides
-
----
-
-## 🏗️ Tech Stack
-
-- **Backend:** Laravel 12
-- **Database:** PostgreSQL (Supabase)
-- **Frontend:** Blade Templates, Tailwind CSS 4, Alpine.js
-- **Build Tool:** Vite
-- **Authentication:** Laravel Breeze
-
----
-
-## ✅ What's Built
-
-### Phase 1 & 2: Foundation (COMPLETE ✅)
-- ✅ Laravel 12 installed and configured
-- ✅ Supabase PostgreSQL connected (pooled + direct connections)
-- ✅ Laravel Breeze authentication (login, register, password reset)
-- ✅ Tailwind CSS 4 with Vite
-- ✅ Helper scripts for environment management
-- ✅ Development workflow optimized
-
-### Phase 3: Core Data Model (COMPLETE ✅)
-- ✅ User roles (Employee/Manager) with RBAC
-- ✅ Manager-employee relationships
-- ✅ Leave request model and migrations
-- ✅ Leave types (PTO, Sick, Vacation, Unpaid)
-- ✅ Request history/audit trail
-- ✅ Database seeders with test data
-
-### Phase 4: Employee Interface (COMPLETE ✅)
-- ✅ Submit new leave requests
-- ✅ View all personal leave requests
-- ✅ Cancel pending/approved requests
-- ✅ View request details and history
-- ✅ Form validation and error handling
-- ✅ Authorization policies
-
-### Phase 5: Manager Interface (COMPLETE ✅)
-- ✅ Manager dashboard with statistics
-- ✅ Pending requests review queue
-- ✅ Approve/deny leave requests
-- ✅ Team calendar view
-- ✅ Conflict detection warnings
-- ✅ Role-based access control
-
-### Phase 6: Advanced Conflict Detection (COMPLETE ✅)
-- ✅ ConflictDetectionService with severity levels
-- ✅ Team availability percentage tracking
-- ✅ Overlapping leave detection
-- ✅ Sequential leave pattern detection
-- ✅ Daily availability breakdowns
-- ✅ Conflict summary dashboard widgets
-
-### Phase 7: Testing & Polish (COMPLETE ✅)
-- ✅ Comprehensive test suite (83 tests)
-  - Feature tests for authentication
-  - Feature tests for leave requests
-  - Feature tests for manager actions
-  - Unit tests for models
-  - Unit tests for ConflictDetectionService
-- ✅ Security audit (CSRF, XSS, SQL injection, authorization)
-- ✅ Query optimization review (eager loading, N+1 prevention)
-- ✅ Production-ready codebase
-
----
-
-## 🌟 Key Features
-
-### For Employees
-- **Submit Leave Requests** - Request time off with notes and date ranges
-- **Track Request Status** - View all requests (pending, approved, denied, cancelled)
-- **Cancel Requests** - Cancel pending or approved requests anytime
-- **View History** - See complete audit trail of all request actions
-
-### For Managers
-- **Review Dashboard** - See pending requests, team statistics, and availability
-- **Approve/Deny Requests** - Review with optional notes and conflict warnings
-- **Team Calendar** - Visual calendar showing all team leaves
-- **Conflict Detection** - Automatic warnings about:
-  - Overlapping team member leaves
-  - Team availability falling below 30%
-  - Sequential leave patterns
-  - Severity levels (Critical, High, Medium, Low)
-- **Team Availability Tracking** - Real-time percentage of available team members
-
-### Security & Quality
-- **Role-Based Access Control** - Employees and managers have appropriate permissions
-- **Authorization Policies** - Users can only access their own data or their team's data
-- **Input Validation** - All forms validated on client and server side
-- **Audit Trail** - Complete history of all request changes
-- **Responsive Design** - Works on desktop, tablet, and mobile
-- **Dark Mode Support** - Full dark mode throughout the application
-
----
-
-## 🗄️ Database Configuration
-
-This project uses **Supabase PostgreSQL** with two connection types:
-
-- **Pooled Connection (Default - Port 6543):** Used for web requests, optimal for production
-- **Direct Connection (Port 5432):** Used for migrations, more reliable for schema changes
-
-The helper scripts (`./start-dev.sh`, `./migrate.sh`, `./artisan.sh`) automatically handle environment variable conflicts and use the correct connection type.
-
----
-
-## 📋 Project Structure
+## Project Structure
 
 ```
-horizon-sentinel/
+pahinga/
 ├── app/
-│   ├── Models/          # Eloquent models
+│   ├── Enums/              # PHP 8.1 Backed Enums
 │   ├── Http/
-│   │   └── Controllers/ # Request handlers
-│   └── ...
+│   │   ├── Controllers/    # Request handlers
+│   │   └── Middleware/     # Role-based middleware
+│   ├── Livewire/           # Livewire 3 components
+│   ├── Models/             # Eloquent models
+│   ├── Notifications/      # Email/database notifications
+│   └── Services/           # Business logic services
 ├── database/
-│   ├── migrations/      # Database schema
-│   └── seeders/         # Test data
+│   ├── migrations/         # Database schema
+│   ├── seeders/            # Test data
+│   └── factories/          # Model factories
 ├── resources/
-│   ├── views/           # Blade templates
-│   ├── css/             # Tailwind styles
-│   └── js/              # Alpine.js & frontend
+│   ├── views/
+│   │   ├── components/     # Blade components
+│   │   ├── hr-admin/       # HR Admin views
+│   │   ├── manager/        # Manager views
+│   │   ├── leave-requests/ # Employee views
+│   │   └── livewire/       # Livewire components
+│   ├── css/                # Tailwind styles
+│   └── js/                 # Alpine.js & frontend
 ├── routes/
-│   └── web.php          # Application routes
-├── docs/
-│   └── phases/          # Phase implementation guides
-├── start-dev.sh         # Start development environment
-├── migrate.sh           # Run migrations
-└── artisan.sh           # Run artisan commands
+│   └── web.php             # Application routes
+├── tests/
+│   ├── Feature/            # Feature tests
+│   └── Unit/               # Unit tests
+├── start-dev.sh            # Development server
+├── migrate.sh              # Migration helper
+└── artisan.sh              # Artisan wrapper
 ```
 
 ---
 
-## 🤝 Contributing
+## Key Technical Implementations
 
-This is a private project for Horizon Dynamics. For development workflow:
+### PHP Enums
+```php
+// app/Enums/LeaveType.php
+enum LeaveType: string {
+    case VACATION = 'vacation';
+    case SICK_LEAVE = 'sick_leave';
+    case PAID_TIME_OFF = 'paid_time_off';
+    case UNPAID_LEAVE = 'unpaid_leave';
 
-1. Check [ROADMAP.md](ROADMAP.md) for current phase
-2. Read phase-specific docs in `docs/phases/`
-3. Follow the task list in `.cursor/.rules/process-task-list.md`
-4. Use helper scripts for all operations
+    public function label(): string { ... }
+}
+```
+
+### Role-Based Middleware
+```php
+// Routes protected by role
+Route::middleware(['auth', 'role:manager'])->group(fn() => ...);
+Route::middleware(['auth', 'role:hr_admin'])->group(fn() => ...);
+```
+
+### Conflict Detection Service
+```php
+// Automatic conflict analysis
+$conflicts = $conflictService->analyzeTeamConflicts($managerId, $startDate, $endDate);
+// Returns: severity, overlapping leaves, availability percentage
+```
 
 ---
 
-## 📄 License
+## Documentation
 
-Private - Horizon Dynamics Internal Project
+| File | Description |
+|------|-------------|
+| [COMMANDS.md](COMMANDS.md) | Complete command reference |
+| [ROADMAP.md](ROADMAP.md) | Development phases |
+| [CLAUDE.md](CLAUDE.md) | Technical architecture |
+| [CHANGELOG.md](CHANGELOG.md) | Version history |
 
 ---
 
-## 🆘 Need Help?
+## Database Configuration
 
-### I want to...
+This project uses **PostgreSQL** with Supabase:
 
-**See my website in the browser**
-- Run: `./start-dev.sh`
-- Open: http://127.0.0.1:8000
+- **Pooled Connection (Port 6543):** Web requests (default)
+- **Direct Connection (Port 5432):** Migrations
 
-**Learn what a command does**
-- Read: [COMMANDS.md](COMMANDS.md) - Every command explained
+Helper scripts automatically manage connection types.
 
-**See the development plan**
-- Check: [ROADMAP.md](ROADMAP.md) - What's done, what's next
+---
 
-**Understand the technical setup**
-- Review: [CLAUDE.md](CLAUDE.md) - Architecture & configuration
+## Testing
 
-**See what changed recently**
-- View: [CHANGELOG.md](CHANGELOG.md) - Version history
+```bash
+# Run all tests
+php artisan test
 
-**Fix a problem**
-- Check: [COMMANDS.md](COMMANDS.md) → Troubleshooting section
+# Run specific test file
+php artisan test tests/Feature/LeaveRequestTest.php
+
+# Run with coverage
+php artisan test --coverage
+```
+
+Test coverage includes:
+- Authentication flows
+- Leave request CRUD operations
+- Manager approval workflows
+- HR Admin management features
+- Conflict detection algorithms
+- Model relationships
+
+---
+
+## Security
+
+- CSRF protection on all forms
+- XSS prevention via Blade escaping
+- SQL injection protection via Eloquent
+- Authorization policies per resource
+- Role-based access control
+- Input validation on client and server
+
+---
+
+## Contributing
+
+1. Check [ROADMAP.md](ROADMAP.md) for current priorities
+2. Follow PSR-12 coding standards
+3. Run `./vendor/bin/pint` before committing
+4. Add tests for new features
+5. Update documentation as needed
+
+---
+
+## License
+
+Private - Internal Project
+
+---
+
+## Need Help?
+
+| I want to... | Do this |
+|--------------|---------|
+| Start the app | `./start-dev.sh` → http://127.0.0.1:8000 |
+| Learn commands | Read [COMMANDS.md](COMMANDS.md) |
+| See the plan | Check [ROADMAP.md](ROADMAP.md) |
+| Fix problems | [COMMANDS.md](COMMANDS.md) → Troubleshooting |

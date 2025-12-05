@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\LeaveStatus;
+use App\Enums\LeaveType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -44,6 +46,8 @@ class LeaveRequest extends Model
             'end_date' => 'date',
             'submitted_at' => 'datetime',
             'reviewed_at' => 'datetime',
+            'status' => LeaveStatus::class,
+            'leave_type' => LeaveType::class,
         ];
     }
 
@@ -76,7 +80,7 @@ class LeaveRequest extends Model
      */
     public function scopePending(Builder $query): Builder
     {
-        return $query->where('status', 'pending');
+        return $query->where('status', LeaveStatus::Pending);
     }
 
     /**
@@ -84,7 +88,7 @@ class LeaveRequest extends Model
      */
     public function scopeApproved(Builder $query): Builder
     {
-        return $query->where('status', 'approved');
+        return $query->where('status', LeaveStatus::Approved);
     }
 
     /**
@@ -92,7 +96,7 @@ class LeaveRequest extends Model
      */
     public function scopeDenied(Builder $query): Builder
     {
-        return $query->where('status', 'denied');
+        return $query->where('status', LeaveStatus::Denied);
     }
 
     /**
@@ -123,7 +127,7 @@ class LeaveRequest extends Model
      */
     public function isPending(): bool
     {
-        return $this->status === 'pending';
+        return $this->status === LeaveStatus::Pending;
     }
 
     /**
@@ -131,7 +135,7 @@ class LeaveRequest extends Model
      */
     public function isApproved(): bool
     {
-        return $this->status === 'approved';
+        return $this->status === LeaveStatus::Approved;
     }
 
     /**
@@ -139,7 +143,7 @@ class LeaveRequest extends Model
      */
     public function isDenied(): bool
     {
-        return $this->status === 'denied';
+        return $this->status === LeaveStatus::Denied;
     }
 
     /**
@@ -147,7 +151,7 @@ class LeaveRequest extends Model
      */
     public function isCancelled(): bool
     {
-        return $this->status === 'cancelled';
+        return $this->status === LeaveStatus::Cancelled;
     }
 
     /**
@@ -191,13 +195,7 @@ class LeaveRequest extends Model
      */
     public function getStatusBadgeClassAttribute(): string
     {
-        return match ($this->status) {
-            'pending' => 'bg-yellow-100 text-yellow-800',
-            'approved' => 'bg-green-100 text-green-800',
-            'denied' => 'bg-red-100 text-red-800',
-            'cancelled' => 'bg-gray-100 text-gray-800',
-            default => 'bg-gray-100 text-gray-800',
-        };
+        return $this->status->badgeClass();
     }
 
     /**
@@ -205,13 +203,7 @@ class LeaveRequest extends Model
      */
     public function getLeaveTypeNameAttribute(): string
     {
-        return match ($this->leave_type) {
-            'paid_time_off' => 'PTO',
-            'unpaid_leave' => 'Unpaid Leave',
-            'sick_leave' => 'Sick Leave',
-            'vacation' => 'Vacation',
-            default => ucfirst(str_replace('_', ' ', $this->leave_type)),
-        };
+        return $this->leave_type->label();
     }
 
     /**
@@ -227,7 +219,7 @@ class LeaveRequest extends Model
      */
     public function canBeCancelled(): bool
     {
-        return in_array($this->status, ['pending', 'approved']);
+        return $this->status->canBeCancelled();
     }
 
     /**
@@ -235,6 +227,6 @@ class LeaveRequest extends Model
      */
     public function canBeEdited(): bool
     {
-        return $this->status === 'pending';
+        return $this->status->canBeEdited();
     }
 }

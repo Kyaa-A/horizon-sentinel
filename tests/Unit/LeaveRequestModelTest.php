@@ -2,6 +2,8 @@
 
 namespace Tests\Unit;
 
+use App\Enums\LeaveStatus;
+use App\Enums\UserRole;
 use App\Models\LeaveRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -102,7 +104,7 @@ class LeaveRequestModelTest extends TestCase
 
         $this->assertCount(3, $pending);
         foreach ($pending as $request) {
-            $this->assertEquals('pending', $request->status);
+            $this->assertEquals(LeaveStatus::Pending, $request->status);
         }
     }
 
@@ -115,7 +117,7 @@ class LeaveRequestModelTest extends TestCase
 
         $this->assertCount(2, $approved);
         foreach ($approved as $request) {
-            $this->assertEquals('approved', $request->status);
+            $this->assertEquals(LeaveStatus::Approved, $request->status);
         }
     }
 
@@ -244,7 +246,7 @@ class LeaveRequestModelTest extends TestCase
         $this->assertCount(2, $requests);
         foreach ($requests as $request) {
             $this->assertEquals($this->manager->id, $request->manager_id);
-            $this->assertEquals('pending', $request->status);
+            $this->assertEquals(LeaveStatus::Pending, $request->status);
         }
     }
 }

@@ -37,7 +37,7 @@ class LeaveRequestDenied extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $manager = $this->leaveRequest->manager;
-        $leaveTypeFormatted = str_replace('_', ' ', ucwords($this->leaveRequest->leave_type, '_'));
+        $leaveTypeFormatted = $this->leaveRequest->leave_type->label();
 
         return (new MailMessage)
             ->subject('Leave Request Denied')
@@ -52,7 +52,7 @@ class LeaveRequestDenied extends Notification
             ->action('View Request', route('leave-requests.show', $this->leaveRequest))
             ->line('Your leave balance has been restored.')
             ->line('If you have questions about this decision, please contact your manager.')
-            ->salutation('Best regards, Horizon Sentinel');
+            ->salutation('Best regards, Pahinga');
     }
 
     /**

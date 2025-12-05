@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\LeaveStatus;
+use App\Enums\UserRole;
 use App\Models\LeaveRequest;
 use App\Models\ManagerDelegation;
 use App\Models\User;
@@ -23,21 +25,10 @@ class ManagerController extends Controller
     }
 
     /**
-     * Check if the user is a manager or HR admin.
-     */
-    protected function ensureManager(Request $request): void
-    {
-        if (! $request->user()->isManager() && ! $request->user()->isHRAdmin()) {
-            abort(403, 'Access denied. Manager or HR Admin privileges required.');
-        }
-    }
-
-    /**
      * Display the manager dashboard.
      */
     public function dashboard(Request $request): View
     {
-        $this->ensureManager($request);
         $user = $request->user();
 
         // Load direct reports count once and cache it
@@ -94,7 +85,6 @@ class ManagerController extends Controller
      */
     public function pendingRequests(Request $request): View
     {
-        $this->ensureManager($request);
         $user = $request->user();
 
         $pendingRequests = LeaveRequest::with(['user'])
@@ -118,8 +108,6 @@ class ManagerController extends Controller
      */
     public function showRequest(Request $request, LeaveRequest $leaveRequest): View
     {
-        $this->ensureManager($request);
-
         // Ensure the request belongs to this manager's team
         if ($leaveRequest->manager_id !== auth()->id()) {
             abort(403, 'You can only review requests from your team.');
@@ -141,7 +129,6 @@ class ManagerController extends Controller
      */
     public function approve(Request $request, LeaveRequest $leaveRequest): RedirectResponse
     {
-        $this->ensureManager($request);
         // Ensure the request belongs to this manager's team
         if ($leaveRequest->manager_id !== $request->user()->id) {
             abort(403, 'You can only approve requests from your team.');
@@ -156,7 +143,7 @@ class ManagerController extends Controller
         ]);
 
         $leaveRequest->update([
-            'status' => 'approved',
+            'status' => LeaveStatus::Approved,
             'manager_notes' => $request->manager_notes,
             'reviewed_at' => now(),
         ]);
@@ -167,7 +154,7 @@ class ManagerController extends Controller
         } catch (\Exception $e) {
             // If balance deduction fails, revert the approval
             $leaveRequest->update([
-                'status' => 'pending',
+                'status' => LeaveStatus::Pending,
                 'manager_notes' => null,
                 'reviewed_at' => null,
             ]);
@@ -183,8 +170,15 @@ class ManagerController extends Controller
             'Approved by manager'.($request->manager_notes ? ': '.$request->manager_notes : '')
         );
 
-        // Send notification to employee
-        $leaveRequest->user->notify(new LeaveRequestApproved($leaveRequest));
+        // Send notification to employee (wrapped in try-catch to prevent blocking on mail errors)
+        try {
+            $leaveRequest->user->notify(new LeaveRequestApproved($leaveRequest));
+        } catch (\Exception $e) {
+            logger()->warning('Failed to send approval notification', [
+                'leave_request_id' => $leaveRequest->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return redirect()
             ->route('manager.pending-requests')
@@ -196,7 +190,6 @@ class ManagerController extends Controller
      */
     public function deny(Request $request, LeaveRequest $leaveRequest): RedirectResponse
     {
-        $this->ensureManager($request);
         // Ensure the request belongs to this manager's team
         if ($leaveRequest->manager_id !== $request->user()->id) {
             abort(403, 'You can only deny requests from your team.');
@@ -213,7 +206,7 @@ class ManagerController extends Controller
         ]);
 
         $leaveRequest->update([
-            'status' => 'denied',
+            'status' => LeaveStatus::Denied,
             'manager_notes' => $request->manager_notes,
             'reviewed_at' => now(),
         ]);
@@ -235,8 +228,15 @@ class ManagerController extends Controller
             'Denied by manager: '.$request->manager_notes
         );
 
-        // Send notification to employee
-        $leaveRequest->user->notify(new LeaveRequestDenied($leaveRequest));
+        // Send notification to employee (wrapped in try-catch to prevent blocking on mail errors)
+        try {
+            $leaveRequest->user->notify(new LeaveRequestDenied($leaveRequest));
+        } catch (\Exception $e) {
+            logger()->warning('Failed to send denial notification', [
+                'leave_request_id' => $leaveRequest->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return redirect()
             ->route('manager.pending-requests')
@@ -248,7 +248,6 @@ class ManagerController extends Controller
      */
     public function teamCalendar(Request $request): View
     {
-        $this->ensureManager($request);
         $user = $request->user();
 
         // Load direct reports count once
@@ -264,7 +263,7 @@ class ManagerController extends Controller
         // Get all approved and pending leaves for the month
         $leaves = LeaveRequest::with(['user'])
             ->forManager($user->id)
-            ->whereIn('status', ['approved', 'pending'])
+            ->whereIn('status', [LeaveStatus::Approved, LeaveStatus::Pending])
             ->where(function ($query) use ($startDate, $endDate) {
                 $query->whereBetween('start_date', [$startDate, $endDate])
                     ->orWhereBetween('end_date', [$startDate, $endDate])
@@ -300,7 +299,6 @@ class ManagerController extends Controller
      */
     public function teamStatus(Request $request): View
     {
-        $this->ensureManager($request);
         $user = $request->user();
 
         // Get date from request, default to today
@@ -312,7 +310,7 @@ class ManagerController extends Controller
         $teamMembers = $user->directReports()
             ->with([
                 'leaveRequests' => function ($query) use ($dateFormatted, $weekLaterFormatted) {
-                    $query->where('status', 'approved')
+                    $query->where('status', LeaveStatus::Approved)
                         ->where(function ($q) use ($dateFormatted, $weekLaterFormatted) {
                             // Current leave: overlaps with today
                             $q->where(function ($subQ) use ($dateFormatted) {
@@ -400,7 +398,6 @@ class ManagerController extends Controller
      */
     public function delegations(Request $request): View
     {
-        $this->ensureManager($request);
         $user = $request->user();
 
         // Get all delegations for this manager
@@ -410,7 +407,7 @@ class ManagerController extends Controller
             ->paginate(10);
 
         // Get all other managers who can be delegates
-        $availableDelegates = User::where('role', 'manager')
+        $availableDelegates = User::where('role', UserRole::Manager)
             ->where('id', '!=', $user->id)
             ->orderBy('name')
             ->get();
@@ -426,8 +423,6 @@ class ManagerController extends Controller
      */
     public function storeDelegation(Request $request): RedirectResponse
     {
-        $this->ensureManager($request);
-
         $validated = $request->validate([
             'delegate_manager_id' => ['required', 'exists:users,id'],
             'start_date' => ['required', 'date', 'after_or_equal:today'],
@@ -454,7 +449,7 @@ class ManagerController extends Controller
 
         // Check for overlapping delegations
         $overlapping = ManagerDelegation::forManager($request->user()->id)
-            ->where('is_active', true)
+            ->whereRaw('is_active = true')
             ->where(function ($query) use ($validated) {
                 $query->whereBetween('start_date', [$validated['start_date'], $validated['end_date']])
                     ->orWhereBetween('end_date', [$validated['start_date'], $validated['end_date']])
@@ -486,8 +481,6 @@ class ManagerController extends Controller
      */
     public function deactivateDelegation(Request $request, ManagerDelegation $delegation): RedirectResponse
     {
-        $this->ensureManager($request);
-
         // Verify the delegation belongs to this manager
         if ($delegation->manager_id !== $request->user()->id) {
             abort(403, 'Unauthorized to deactivate this delegation.');
@@ -503,8 +496,6 @@ class ManagerController extends Controller
      */
     public function destroyDelegation(Request $request, ManagerDelegation $delegation): RedirectResponse
     {
-        $this->ensureManager($request);
-
         // Verify the delegation belongs to this manager
         if ($delegation->manager_id !== $request->user()->id) {
             abort(403, 'Unauthorized to delete this delegation.');

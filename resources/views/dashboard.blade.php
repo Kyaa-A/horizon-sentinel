@@ -116,7 +116,7 @@
                                         <div class="flex justify-between items-start">
                                             <div class="flex-1">
                                                 <p class="font-semibold text-gray-900 dark:text-gray-100">
-                                                    {{ ucfirst(str_replace('_', ' ', $leave->leave_type)) }}
+                                                    {{ $leave->leave_type->label() }}
                                                 </p>
                                                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
                                                     {{ $leave->start_date->format('M d, Y') }} - {{ $leave->end_date->format('M d, Y') }}
@@ -161,11 +161,11 @@
                         @if($recentRequests->count() > 0)
                             <div class="space-y-4">
                                 @foreach($recentRequests as $request)
-                                    <div class="border-l-4 @if($request->status === 'pending') border-yellow-500 bg-gradient-to-r from-yellow-50 to-transparent dark:from-yellow-900/20 dark:to-transparent @elseif($request->status === 'approved') border-green-500 bg-gradient-to-r from-green-50 to-transparent dark:from-green-900/20 dark:to-transparent @else border-red-500 bg-gradient-to-r from-red-50 to-transparent dark:from-red-900/20 dark:to-transparent @endif p-4 rounded-lg hover:shadow-sm transition-shadow duration-200">
+                                    <div class="border-l-4 @if($request->status === \App\Enums\LeaveStatus::Pending) border-yellow-500 bg-gradient-to-r from-yellow-50 to-transparent dark:from-yellow-900/20 dark:to-transparent @elseif($request->status === \App\Enums\LeaveStatus::Approved) border-green-500 bg-gradient-to-r from-green-50 to-transparent dark:from-green-900/20 dark:to-transparent @else border-red-500 bg-gradient-to-r from-red-50 to-transparent dark:from-red-900/20 dark:to-transparent @endif p-4 rounded-lg hover:shadow-sm transition-shadow duration-200">
                                         <div class="flex justify-between items-start">
                                             <div class="flex-1">
                                                 <p class="font-semibold text-gray-900 dark:text-gray-100">
-                                                    {{ ucfirst(str_replace('_', ' ', $request->leave_type)) }}
+                                                    {{ $request->leave_type->label() }}
                                                 </p>
                                                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
                                                     {{ $request->start_date->format('M d') }} - {{ $request->end_date->format('M d, Y') }}
@@ -177,10 +177,10 @@
                                                 @endif
                                             </div>
                                             <span class="px-3 py-1 text-xs font-semibold rounded-full
-                                                @if($request->status === 'pending') text-yellow-800 dark:text-yellow-200 bg-yellow-200 dark:bg-yellow-800
-                                                @elseif($request->status === 'approved') text-green-800 dark:text-green-200 bg-green-200 dark:bg-green-800
+                                                @if($request->status === \App\Enums\LeaveStatus::Pending) text-yellow-800 dark:text-yellow-200 bg-yellow-200 dark:bg-yellow-800
+                                                @elseif($request->status === \App\Enums\LeaveStatus::Approved) text-green-800 dark:text-green-200 bg-green-200 dark:bg-green-800
                                                 @else text-red-800 dark:text-red-200 bg-red-200 dark:bg-red-800 @endif">
-                                                {{ ucfirst($request->status) }}
+                                                {{ $request->status->label() }}
                                             </span>
                                         </div>
                                     </div>

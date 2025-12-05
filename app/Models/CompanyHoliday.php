@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
 class CompanyHoliday extends Model
 {
+    use HasFactory;
     /**
      * The attributes that are mass assignable.
      *
@@ -21,14 +23,29 @@ class CompanyHoliday extends Model
     ];
 
     /**
-     * The attributes that should be cast.
+     * Get the attributes that should be cast.
      *
-     * @var array<string, string>
+     * @return array<string, string>
      */
-    protected $casts = [
-        'date' => 'date',
-        'is_recurring' => 'boolean',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'date' => 'date',
+            'is_recurring' => 'boolean',
+        ];
+    }
+
+    /**
+     * Set the is_recurring attribute.
+     * Ensures proper boolean handling for PostgreSQL with PDO emulation.
+     *
+     * @param  mixed  $value
+     */
+    public function setIsRecurringAttribute($value): void
+    {
+        // PostgreSQL with PDO ATTR_EMULATE_PREPARES needs explicit boolean string
+        $this->attributes['is_recurring'] = $value ? 'true' : 'false';
+    }
 
     /**
      * Get holidays within a specific date range.

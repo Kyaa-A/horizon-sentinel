@@ -1,6 +1,20 @@
 <x-app-layout>
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-5">
+            <!-- Header with New Request Button -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">My Leave Requests</h1>
+                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">View and manage your leave requests</p>
+                </div>
+                <a href="{{ route('leave-requests.create') }}" class="inline-flex items-center px-6 py-3 bg-gradient-horizon border border-transparent rounded-lg font-semibold text-sm text-white uppercase tracking-wide hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 active:scale-[0.98] transition-all duration-200 shadow-lg">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    New Request
+                </a>
+            </div>
+
             <!-- Filters -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                 <div class="p-6">
@@ -122,7 +136,7 @@
                                                     <div class="ml-4">
                                                         <div class="flex items-center gap-2">
                                                             <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                                                {{ ucwords(str_replace('_', ' ', $request->leave_type)) }}
+                                                                {{ $request->leave_type->label() }}
                                                             </div>
                                                             @if ($request->hasAttachment())
                                                                 <svg class="h-4 w-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" title="Has attachment">
@@ -144,14 +158,14 @@
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 @php
                                                     $statusClasses = [
-                                                        'pending' => 'bg-yellow-200 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-200',
-                                                        'approved' => 'bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200',
-                                                        'denied' => 'bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200',
-                                                        'cancelled' => 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
+                                                        \App\Enums\LeaveStatus::Pending->value => 'bg-yellow-200 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-200',
+                                                        \App\Enums\LeaveStatus::Approved->value => 'bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200',
+                                                        \App\Enums\LeaveStatus::Denied->value => 'bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200',
+                                                        \App\Enums\LeaveStatus::Cancelled->value => 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
                                                     ];
                                                 @endphp
-                                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusClasses[$request->status] ?? '' }}">
-                                                    {{ ucfirst($request->status) }}
+                                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusClasses[$request->status->value] ?? '' }}">
+                                                    {{ $request->status->label() }}
                                                 </span>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">

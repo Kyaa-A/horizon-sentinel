@@ -86,8 +86,8 @@
                                     @if ($leavesOnDay->isNotEmpty())
                                         <div class="mt-2 space-y-1">
                                             @foreach ($leavesOnDay->take(3) as $leave)
-                                                <div title="{{ $leave->user->name }} - {{ ucwords(str_replace('_', ' ', $leave->leave_type)) }}"
-                                                     class="text-xs px-2 py-1 rounded-md {{ $leave->status === 'approved' ? 'bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200' : 'bg-yellow-200 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-200' }} truncate cursor-pointer hover:scale-105 transition-transform font-medium">
+                                                <div title="{{ $leave->user->name }} - {{ $leave->leave_type->label() }}"
+                                                     class="text-xs px-2 py-1 rounded-md {{ $leave->status === \App\Enums\LeaveStatus::Approved ? 'bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200' : 'bg-yellow-200 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-200' }} truncate cursor-pointer hover:scale-105 transition-transform font-medium">
                                                     {{ substr($leave->user->name, 0, 12) }}{{ strlen($leave->user->name) > 12 ? '...' : '' }}
                                                 </div>
                                             @endforeach
@@ -127,7 +127,7 @@
                                                         {{ $leave->user->name }}
                                                     </p>
                                                     <p class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
-                                                        {{ ucwords(str_replace('_', ' ', $leave->leave_type)) }}
+                                                        {{ $leave->leave_type->label() }}
                                                     </p>
                                                 </div>
                                             </div>
@@ -141,8 +141,8 @@
                                             </p>
                                         </div>
                                         <div class="ml-6">
-                                            <span class="px-3 py-1 text-xs font-semibold rounded-full {{ $leave->status === 'approved' ? 'bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200' : 'bg-yellow-200 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-200' }}">
-                                                {{ ucfirst($leave->status) }}
+                                            <span class="px-3 py-1 text-xs font-semibold rounded-full {{ $leave->status === \App\Enums\LeaveStatus::Approved ? 'bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200' : 'bg-yellow-200 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-200' }}">
+                                                {{ $leave->status->label() }}
                                             </span>
                                         </div>
                                     </div>
